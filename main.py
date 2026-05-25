@@ -1,14 +1,10 @@
-# ============================================================
-# main.py - ChatGPT-like AI Chatbot (Render Ready)
-# ============================================================
-
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+import google.generativeai as genai
 import os
-from openai import OpenAI
 
 # ============================================================
 # App setup
@@ -20,15 +16,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # ============================================================
-# OpenAI Client
+# Gemini setup
 # ============================================================
 
-api_key = os.getenv("OPENAI_API_KEY")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-if not api_key:
-    raise ValueError("OPENAI_API_KEY is missing")
-
-client = OpenAI(api_key=api_key)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ============================================================
 # Home route
@@ -50,44 +43,24 @@ async def chat(request: Request):
 
     if not question:
         return JSONResponse({
-            "answer": "Please ask something 🙂",
-            "source": "system"
+            "answer": "Please ask something 🙂"
         })
 
     try:
 
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a helpful AI study assistant. "
-                        "Explain answers simply for students."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": question
-                }
-            ],
-            temperature=0.7
-        )
-
-        answer = response.choices[0].message.content
+        response = model.generate_content(question)
 
         return JSONResponse({
-            "answer": answer,
-            "source": "OpenAI GPT"
+            "answer": response.text,
+            "source": "Google Gemini AI"
         })
 
     except Exception as e:
 
-        print("OPENAI ERROR:", str(e))
+        print("GEMINI ERROR:", str(e))
 
         return JSONResponse({
-            "answer": f"Error: {str(e)}",
-            "source": "system"
+            "answer": f"Error: {str(e)}"
         })
 
 # ============================================================
@@ -97,8 +70,6 @@ async def chat(request: Request):
 if __name__ == "__main__":
 
     import uvicorn
-
-    print("🚀 Server running at http://127.0.0.1:8000")
 
     uvicorn.run(
         "main:app",
