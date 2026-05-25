@@ -7,7 +7,7 @@ import google.generativeai as genai
 import os
 
 # ============================================================
-# GEMINI API KEY
+# GEMINI API
 # ============================================================
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
@@ -21,18 +21,22 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
 templates = Jinja2Templates(directory="templates")
 
 # ============================================================
-# HOME PAGE
+# HOME ROUTE
 # ============================================================
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
 
 # ============================================================
-# CHAT API
+# CHAT ROUTE
 # ============================================================
 
 @app.post("/chat")
@@ -41,7 +45,7 @@ async def chat(request: Request):
     try:
         data = await request.json()
 
-        question = data.get("question", "")
+        question = data.get("question", "").strip()
 
         if not question:
             return JSONResponse({
@@ -50,16 +54,18 @@ async def chat(request: Request):
 
         response = model.generate_content(question)
 
+        answer = response.text
+
         return JSONResponse({
-            "answer": response.text
+            "answer": answer
         })
 
     except Exception as e:
 
-        print("ERROR:", str(e))
+        print("SERVER ERROR:", str(e))
 
         return JSONResponse({
-            "answer": f"Server Error: {str(e)}"
+            "answer": f"Error: {str(e)}"
         })
 
 # ============================================================
@@ -70,4 +76,9 @@ if __name__ == "__main__":
 
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )
