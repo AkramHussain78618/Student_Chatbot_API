@@ -20,10 +20,15 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # ============================================================
-# OpenAI Client (API KEY from Render ENV)
+# OpenAI Client
 # ============================================================
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    raise ValueError("OPENAI_API_KEY is missing")
+
+client = OpenAI(api_key=api_key)
 
 # ============================================================
 # Home route
@@ -34,7 +39,7 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 # ============================================================
-# Chat route (ChatGPT-like AI)
+# Chat route
 # ============================================================
 
 @app.post("/chat")
@@ -50,14 +55,15 @@ async def chat(request: Request):
         })
 
     try:
+
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "You are a helpful, friendly AI study assistant chatbot. "
-                        "Explain answers in simple language for students."
+                        "You are a helpful AI study assistant. "
+                        "Explain answers simply for students."
                     )
                 },
                 {
@@ -76,18 +82,27 @@ async def chat(request: Request):
         })
 
     except Exception as e:
-    print("OPENAI ERROR:", str(e))
 
-    return JSONResponse({
-        "answer": f"Error: {str(e)}",
-        "source": "system"
-    })
+        print("OPENAI ERROR:", str(e))
+
+        return JSONResponse({
+            "answer": f"Error: {str(e)}",
+            "source": "system"
+        })
 
 # ============================================================
 # Run locally
 # ============================================================
 
 if __name__ == "__main__":
+
     import uvicorn
+
     print("🚀 Server running at http://127.0.0.1:8000")
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )
