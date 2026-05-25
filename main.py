@@ -45,11 +45,20 @@ async def chat(request: Request):
             "answer": response.text
         })
 
+    @app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+
+    try:
+        return templates.TemplateResponse(
+            "index.html",
+            {"request": request}
+        )
+
     except Exception as e:
 
-        return JSONResponse({
-            "answer": f"Error: {str(e)}"
-        })
+        return HTMLResponse(
+            f"<h1>Template Error</h1><p>{str(e)}</p>"
+        )
 
 # Local run
 if __name__ == "__main__":
