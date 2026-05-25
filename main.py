@@ -76,10 +76,12 @@ async def chat(request: Request):
         })
 
     except Exception as e:
-        return JSONResponse({
-            "answer": "AI service error. Please try again later.",
-            "error": str(e)
-        })
+    print("OPENAI ERROR:", str(e))
+
+    return JSONResponse({
+        "answer": f"Error: {str(e)}",
+        "source": "system"
+    })
 
 # ============================================================
 # Run locally
