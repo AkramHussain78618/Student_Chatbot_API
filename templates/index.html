@@ -3,40 +3,40 @@
 <head>
     <title>AI Chatbot</title>
 </head>
-
 <body>
 
-<h1>AI Chatbot</h1>
+    <h1>AI Chatbot</h1>
 
-<input type="text" id="question">
-<button onclick="sendMessage()">Send</button>
+    <input type="text" id="question" placeholder="Ask something">
+    
+    <button onclick="sendMessage()">
+        Send
+    </button>
 
-<p id="answer"></p>
+    <h3>Answer:</h3>
 
-<script>
+    <div id="answer"></div>
 
-async function sendMessage() {
+    <script>
+        async function sendMessage() {
 
-    const question =
-        document.getElementById("question").value;
+            const question = document.getElementById("question").value;
 
-    const response = await fetch("/chat", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            question: question
-        })
-    });
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    question: question
+                })
+            });
 
-    const data = await response.json();
+            const data = await response.json();
 
-    document.getElementById("answer").innerText =
-        data.answer;
-}
-
-</script>
+            document.getElementById("answer").innerText = data.answer;
+        }
+    </script>
 
 </body>
 </html>

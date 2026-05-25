@@ -1,33 +1,20 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
 import google.generativeai as genai
 import os
-
-# ============================================================
-# Gemini API Setup
-# ============================================================
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# ============================================================
-# FastAPI App
-# ============================================================
-
 app = FastAPI()
 
-# ============================================================
-# Home Route
-# ============================================================
+templates = Jinja2Templates(directory="templates")
 
-@app.get("/")
-async def home():
-    return {"message": "AI Chatbot Running Successfully"}
-
-# ============================================================
-# Chat Route
-# ============================================================
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/chat")
 async def chat(request: Request):
@@ -37,11 +24,6 @@ async def chat(request: Request):
 
         question = data.get("question")
 
-        if not question:
-            return JSONResponse({
-                "answer": "Please ask something"
-            })
-
         response = model.generate_content(question)
 
         return JSONResponse({
@@ -49,8 +31,6 @@ async def chat(request: Request):
         })
 
     except Exception as e:
-
-        print("ERROR:", str(e))
 
         return JSONResponse({
             "answer": str(e)
