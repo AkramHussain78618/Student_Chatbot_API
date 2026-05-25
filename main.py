@@ -1,68 +1,37 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 
 import google.generativeai as genai
 import os
 
 app = FastAPI()
 
-# Static + Templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# folders
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Gemini API
+# gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Home Route
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-
     return templates.TemplateResponse(
         "index.html",
         {"request": request}
     )
 
-# Chat Route
 @app.post("/chat")
 async def chat(request: Request):
 
-    try:
+    data = await request.json()
 
-        data = await request.json()
+    question = data.get("question", "")
 
-        question = data.get("question", "").strip()
+    response = model.generate_content(question)
 
-        if not question:
-
-            return JSONResponse({
-                "answer": "Please ask something."
-            })
-
-        response = model.generate_content(question)
-
-        answer = response.text
-
-        return JSONResponse({
-            "answer": answer
-        })
-
-    except Exception as e:
-
-        return JSONResponse({
-            "answer": f"Error: {str(e)}"
-        })
-
-# Local Run
-if __name__ == "__main__":
-
-    import uvicorn
-
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000
-    )
+    return JSONResponse({
+        "answer": response.text
+    })
