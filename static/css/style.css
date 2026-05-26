@@ -1,13 +1,16 @@
-body{
+body {
     font-family: Arial;
-    padding:40px;
+    padding: 40px;
+    background: #111;
+    color: white;
 }
 
-input{
-    width:300px;
-    padding:10px;
+input {
+    padding: 10px;
+    width: 300px;
 }
 
-button{
-    padding:10px;
+button {
+    padding: 10px;
+    cursor: pointer;
 }
