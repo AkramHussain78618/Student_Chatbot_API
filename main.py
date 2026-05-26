@@ -7,11 +7,13 @@ import os
 
 app = FastAPI()
 
-# Static + Templates
+# Static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Templates
 templates = Jinja2Templates(directory="templates")
 
-# Gemini API Key
+# Gemini API
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 model = genai.GenerativeModel("gemini-1.5-flash")
@@ -44,4 +46,9 @@ async def chat(request: Request, question: str = Form(...)):
             "question": question,
             "answer": answer
         }
-   
+    )
+
+# Run locally
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
