@@ -7,26 +7,31 @@ import os
 
 app = FastAPI()
 
-# Static files
+# Static folder
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Templates
+# Templates folder
 templates = Jinja2Templates(directory="templates")
 
-# Gemini API
+# Gemini API setup
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Home page
+# Home Page
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
+
     return templates.TemplateResponse(
         request=request,
-        name="index.html"
+        name="index.html",
+        context={
+            "question": "",
+            "answer": ""
+        }
     )
 
-# Chat route
+# Chat Route
 @app.post("/", response_class=HTMLResponse)
 async def chat(request: Request, question: str = Form(...)):
 
